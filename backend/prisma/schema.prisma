@@ -1,0 +1,244 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ----------------------------------------------------------------------
+// 1. USERS & ACCESS CONTROL (Handles Admin & Clients)
+// ----------------------------------------------------------------------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relationships
+  profile         Profile?
+  locations       Location[]
+  dogs            Dog[]
+  yards           Yard[]
+  subscriptions   Subscription[]
+  invoices        Invoice[]
+  payments        Payment[]
+  paymentMethods  PaymentMethod[]
+  settings        Settings?
+  cleanups        Cleanup[]
+  serviceRequests ServiceRequest[]
+}
+
+// ----------------------------------------------------------------------
+// 2. PROFILE & CONTACT INFO
+// ----------------------------------------------------------------------
+
+model Profile {
+  id          String  @id @default(uuid())
+  firstName   String
+  lastName    String
+  phoneNumber String?
+  altPhone    String?
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ----------------------------------------------------------------------
+// 3. LOCATIONS & YARDS
+// ----------------------------------------------------------------------
+
+model Location {
+  id            String  @id @default(uuid())
+  streetAddress String
+  city          String
+  state         String
+  zipCode       String
+  isPrimary     Boolean @default(false)
+  userId        String
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  yards         Yard[]
+}
+
+model Yard {
+  id          String    @id @default(uuid())
+  description String? // e.g., "Backyard only", "Fenced front and back"
+  gateCode    String?
+  accessNotes String? // e.g., "Beware of loose board on left gate"
+  size        String? // Small, Medium, Large
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId  String
+  location    Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  cleanups    Cleanup[]
+}
+
+// ----------------------------------------------------------------------
+// 4. DOG INFO
+// ----------------------------------------------------------------------
+
+model Dog {
+  id         String  @id @default(uuid())
+  name       String
+  breed      String?
+  weight     Float?
+  isFriendly Boolean @default(true)
+  color      String?
+  notes      String? // e.g., "Likes treats, runs out the gate"
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ----------------------------------------------------------------------
+// 5. BILLING: SUBSCRIPTIONS, INVOICES & PAYMENTS
+// ----------------------------------------------------------------------
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELED
+}
+
+enum Frequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  ONE_TIME
+}
+
+model Subscription {
+  id        String             @id @default(uuid())
+  status    SubscriptionStatus @default(ACTIVE)
+  frequency Frequency
+  price     Float
+  startDate DateTime
+  endDate   DateTime?
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices  Invoice[]
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  OVERDUE
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  invoiceNumber  String        @unique
+  status         InvoiceStatus @default(UNPAID)
+  amount         Float
+  openBalance    Float
+  overdueBalance Float         @default(0)
+  dueDate        DateTime
+  issuedDate     DateTime      @default(now())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  payments       Payment[]
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  amount        Float
+  paymentDate   DateTime @default(now())
+  transactionId String? // Stripe/Square payment ID
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+}
+
+model PaymentMethod {
+  id            String  @id @default(uuid())
+  stripeTokenId String // Secure token from Stripe/Square, NEVER store raw cards
+  cardBrand     String // e.g., "Visa", "Mastercard"
+  lastFour      String // e.g., "4242"
+  expMonth      Int
+  expYear       Int
+  isDefault     Boolean @default(false)
+  userId        String
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ----------------------------------------------------------------------
+// 6. SCHEDULING: CLEANUPS
+// ----------------------------------------------------------------------
+
+enum CleanupStatus {
+  SCHEDULED
+  COMPLETED
+  SKIPPED
+}
+
+model Cleanup {
+  id            String        @id @default(uuid())
+  scheduledDate DateTime
+  completedDate DateTime?
+  status        CleanupStatus @default(SCHEDULED)
+  techNotes     String? // "Gate was locked, couldn't access backyard"
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  yardId        String
+  yard          Yard          @relation(fields: [yardId], references: [id], onDelete: Restrict)
+}
+
+// ----------------------------------------------------------------------
+// 7. ADDITIONAL SERVICES
+// ----------------------------------------------------------------------
+
+model Service {
+  id          String           @id @default(uuid())
+  name        String // e.g., "Odor Eliminator Spray", "Deck Wash"
+  description String
+  price       Float
+  isActive    Boolean          @default(true)
+  requests    ServiceRequest[]
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  DENIED
+}
+
+model ServiceRequest {
+  id          String               @id @default(uuid())
+  status      ServiceRequestStatus @default(PENDING)
+  requestDate DateTime             @default(now())
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId   String
+  service     Service              @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+}
+
+// ----------------------------------------------------------------------
+// 8. NOTIFICATIONS & SETTINGS
+// ----------------------------------------------------------------------
+
+model Settings {
+  id               String  @id @default(uuid())
+  emailAlerts      Boolean @default(true)
+  smsAlerts        Boolean @default(false)
+  billingReminders Boolean @default(true)
+  onTheWayAlerts   Boolean @default(true) // Tech is en route
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

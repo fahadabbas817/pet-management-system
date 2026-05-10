@@ -1,0 +1,41 @@
+in the dashboard sidebar we are going to have this section and subsection 
+
+home section that will be main page like dashborad kind of no subsection in it 
+
+Profile section and it has these subsections: Contact Info, Location, Dog Info, Yard Info
+
+Contact Info has these fields: Primary Contact, home Phone, Cell phone, email and there is option to add contact , remove contact. inside this section there is add contact button which opens the popup with first name, middle name, last name ,email, home phone number, cell phone number, checkbox for recieve job notifications, recieve invoices via email
+in the location section the fields on the page are street address, city, state, zip code,  country in that page there is option to edit the location details 
+
+in the dog info page there is a card with placeholder dog pic name bradley, breed, birth date , the options it has are edit view details and more 
+in the edit mode it has name, gender, birthdate, is the dog safe question, breed, additional comments, add photo option 
+view details also has similar fields but only readable and presentable way 
+yard info has these fields: Gate location (set to right), yard size, gate code, gated community, areas to clean, doggie door, garbage can collection, additional comments 
+it also has edit button with these similar fileds : gate location drop down with options like left, right, alley, no gate, other
+other field yard size with dropdown of multiple sizes like less than 1/8 acre or so 
+,gate code, gate community, 
+areas to clean also dropdown with checkbox for frontyard, backyard, flowerbeds, doggie door option: yes or no option in dropdown, garbage can collection also dropdown , add photo button also 
+ 
+
+there is a cleanup section with no subsections
+
+there is a billing section with these subsections: subscriptions, invoices, payments, payments methods, 
+subscription section has a table with columns: Status, Subscription Name, start date, end date, amount , tips, billing it was set as prepaid fixed at the end of the row there was an arrow that takes to details of that subscription.
+When we click on that the details appear which have these fields: subscription id, subscription name, date created, start date ,end date, cleanup frequency, amount, tip, billing option which is set as prepaid fixed, status which was set as active detail page  also has an action button with drop down feature like pause subscription, change cleanup frequency,  cancel subscription
+
+invoice page has a card for open balance and card for overdue 
+it also has a table although it was empty but the column were: Date, Invoice Number, type, total, tip, status
+
+payments page has a table with fields : Date, amount, tip, status, method, description, 
+
+payment method page only has a big card of add credit card button on clicking that button it asks for card number, name on card, billing zip code 
+
+then there is additional service section on sidebar with no sub sections 
+it has a table with fileds: service, description, price, status and against each row there was button of request 
+
+then there is setting section in sidebar and it has these subsections: Notification, change password, change email 
+
+in the notification page it has these sections : what cleanup messages would you like to recieve options listed as off schedule, on the way , completed
+other section is notification channel with question how would you like to recieve the  notification drop down with options : web portal, web, email + web, text + web, Call + web 
+there was also sms sending consent
+change email and change password was standard nothing to discuss here just email confirm email like that 
